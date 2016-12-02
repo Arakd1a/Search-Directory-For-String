@@ -1,19 +1,21 @@
 package xml.find.string;
 
 import java.io.File;
+import java.io.FileFilter;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import javax.swing.JFileChooser;
+import javax.swing.JOptionPane;
 
 /*
  * To change this license header, choose License Headers in Project Properties.
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-
 /**
  *
  * @author mbarker
@@ -107,47 +109,72 @@ public class Gui extends javax.swing.JFrame {
     }                                                
 
     private void jToggleButtonGoActionPerformed(java.awt.event.ActionEvent evt) {                                                
-     
-        String SEARCH_STRING = jTextFieldSearch.getText();
-        String result = "";
-      
-        File dirPath = new File("./xml");
-        File[] files = dirPath.listFiles();
-        String[] names = dirPath.list();
-        ArrayList<String> fileContentsList = new ArrayList<String>();
-        int fileCount = 0;
-        String foundIn = "NONE";
 
-        for (int i = 0; i < files.length; i++) {
-            try {
-                System.out.println("PARSING FILE:   " + files[i]);
-                result = result + ("\nPARSING FILE:   " + files[i]);
-                jTextAreaResult.setText(result);
-                String fileContent = new String(Files.readAllBytes(Paths.get(files[i].toString())));
-                fileContentsList.add(fileContent);
-                fileCount++;
-                if (fileContentsList.get(i).contains(SEARCH_STRING)) {
+        String check = jTextFieldSearch.getText();
+        
+        if(check == null){
+            
+            infoBox("Search field blank", "Error");
+            
+        }else{
+        
+        
+        JFileChooser fileChooser = new JFileChooser();
+        fileChooser.setCurrentDirectory(new File(System.getProperty("user.home")));
+        fileChooser.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
+        int resultNum = fileChooser.showOpenDialog(this);
+        if (resultNum == JFileChooser.APPROVE_OPTION) {
+            File selectedFile = fileChooser.getSelectedFile();
+            File dirPath = selectedFile;
 
-                    foundIn = files[i].toString();
-                 
+            String SEARCH_STRING = jTextFieldSearch.getText();
+            String result = "";
+
+            File[] files = dirPath.listFiles(new FileFilter() {
+                @Override
+                public boolean accept(File pathname) {
+
+                    String name = pathname.getName().toLowerCase();
+                    return name.endsWith(".xml") && pathname.isFile();
                 }
-            } catch (IOException ex) {
-                Logger.getLogger(XMLFindString.class.getName()).log(Level.SEVERE, null, ex);
-            } finally {
+            });
+            String[] names = dirPath.list();
+            ArrayList<String> fileContentsList = new ArrayList<String>();
+            int fileCount = 0;
+            String foundIn = "NONE";
+
+            for (int i = 0; i < files.length; i++) {
+                try {
+                    System.out.println("PARSING FILE:   " + files[i]);
+                    result = result + ("\nPARSING FILE:   " + files[i]);
+                    jTextAreaResult.setText(result);
+                    String fileContent = new String(Files.readAllBytes(Paths.get(files[i].toString())));
+                    fileContentsList.add(fileContent);
+                    fileCount++;
+                    if (fileContentsList.get(i).contains(SEARCH_STRING)) {
+
+                        foundIn = files[i].toString();
+
+                    }
+                } catch (IOException ex) {
+                    Logger.getLogger(XMLFindString.class.getName()).log(Level.SEVERE, null, ex);
+                } finally {
+
+                }
 
             }
 
+            System.out.println("\n\nSUCCESSFULLY PARSED " + fileCount + " FILES.");
+            result = result + "\n\nSUCCESSFULLY PARSED " + fileCount + " FILES.";
+            jTextAreaResult.setText(result);
+            System.out.println("\n\nMATCH FOUND IN: " + foundIn);
+            result = result + "\n\nMATCH FOUND IN: " + foundIn;
+            jTextAreaResult.setText(result);
+
+            System.out.println("Selected file: " + selectedFile.getAbsolutePath());
         }
-        
-        System.out.println("\n\nSUCCESSFULLY PARSED " + fileCount + " FILES.");
-        result = result + "\n\nSUCCESSFULLY PARSED " + fileCount + " FILES.";
-        jTextAreaResult.setText(result);
-        System.out.println("\n\nMATCH FOUND IN: " + foundIn);
-         result = result + "\n\nMATCH FOUND IN: " + foundIn;
-         jTextAreaResult.setText(result);
-        
-        
-        
+
+        }
     }                                               
 
     /**
@@ -183,6 +210,11 @@ public class Gui extends javax.swing.JFrame {
                 new Gui().setVisible(true);
             }
         });
+    }
+    
+      public static void infoBox(String infoMessage, String titleBar)
+    {
+        JOptionPane.showMessageDialog(null, infoMessage, "InfoBox: " + titleBar, JOptionPane.INFORMATION_MESSAGE);
     }
 
     // Variables declaration - do not modify                     
